@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>DN Calendar</title>
+		<link rel="stylesheet" type="text/css" href="css/dncalendar-skin.min.css">
+	</head>
+	<body>
+		<div id="dncalendar-container">
+		</div>
+		<script type="text/javascript" src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script type="text/javascript" src="js/dncalendar.min.js"></script>
+		<script type="text/javascript">
+		$(document).ready(function() {
+			var my_calendar = $("#dncalendar-container").dnCalendar({
+				minDate: "2015-12-15",
+				maxDate: "2016-03-01",
+				defaultDate: "2016-01-12",
+				monthNames: [ "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember" ], 
+				monthNamesShort: [ 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des' ],
+				dayNames: [ 'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
+                dayNamesShort: [ 'Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab' ],
+                dataTitles: { defaultDate: 'default', today : 'hari ini' },
+                notes: [
+                		{ "date": "2015-12-25", "note": ["Natal"] },
+                		{ "date": "2015-12-31", "note": ["Tahun Baru"] }
+                		],
+                showNotes: true,
+                dayClick: function(date, view) {
+                	alert(date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear());
+                }
+			});
+
+			// init calendar
+			my_calendar.build();
+
+			// update calendar
+			my_calendar.update({
+				minDate: "2015-12-05",
+				defaultDate: "2015-12-04"
+			});
+		});
+		</script>
+	</body>
+</html>

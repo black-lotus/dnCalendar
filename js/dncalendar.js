@@ -256,13 +256,13 @@
                   				var colDate = "<td id='calendarClick' class='"+ colDateClass +"' data-date='"+ prevDate +"' data-month='"+ (lastDateOfPrevMonth.getMonth() + 1) +"' data-year='"+ lastDateOfPrevMonth.getFullYear() +"'><div class='entry' "+ colDateDataAttr +">"+ prevDate +"</div></td>";
                   				
                                           if (minDate != null) {
-                  					if (minDate.getFullYear() >= lastDateOfPrevMonth.getFullYear()) {
-                  						if (minDate.getMonth() > lastDateOfPrevMonth.getMonth()) {
-                  							
+                                                if (minDate.getFullYear() > lastDateOfPrevMonth.getFullYear()) {
+                                                      colDate = "<td class='"+ colDateClass +"' data-date='"+ prevDate +"' data-month='"+ (lastDateOfPrevMonth.getMonth() + 1) +"' data-year='"+ lastDateOfPrevMonth.getFullYear() +"'><div class='entry' "+ colDateDataAttr +">"+ prevDate +"</div></td>";
+                                                } else {
+                                                      if (minDate.getFullYear() == lastDateOfPrevMonth.getFullYear() && minDate.getMonth() > lastDateOfPrevMonth.getMonth()) {
                                                             colDate = "<td class='"+ colDateClass +"' data-date='"+ prevDate +"' data-month='"+ (lastDateOfPrevMonth.getMonth() + 1) +"' data-year='"+ lastDateOfPrevMonth.getFullYear() +"'><div class='entry' "+ colDateDataAttr +">"+ prevDate +"</div></td>";
-                                                            
-      	            					}
-      	            				}
+                                                      }
+                                                }
                   				}
 
                   				tableBodyRowGroup.append(colDate);
@@ -428,13 +428,15 @@
 		}
 
 		var triggerAction = function() {
-			$('body').on('click', '#calendarClick', function(){
+
+		    $('body').on('click', '#calendarClick', function(){
 				var selectedDate = $(this).data('date');
 				var selectedMonth = $(this).data('month');
 				var selectedYear = $(this).data('year');
 
-				settings.dayClick(new Date(selectedYear, selectedMonth - 1, selectedDate), self);
-		    });
+				settings.dayClick.call(this, new Date(selectedYear, selectedMonth - 1, selectedDate), self);
+
+                  });
 
 		    $('body').on('click', '#dncalendar-prev-month', function() {
 		    	prevMonth();
@@ -447,15 +449,7 @@
 
 		return {
 			build: function() {
-                        settings = $.extend({
-                                    monthNames: [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ], 
-                                    monthNamesShort: [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Dec' ],
-                                    dayNames: [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-                                    dayNamesShort: [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
-                                    dayUseShortName: false,
-                                    monthUseShortName: false,
-                                    showNotes: false
-                                    }, options );
+                        settings = $.extend( {}, $.fn.dnCalendar.defaults, options );
 
 				// replace with defaultDate when exist
 				if (typeof settings.defaultDate !== 'undefined') {
@@ -468,7 +462,6 @@
 				triggerAction();
 			},
                   update: function(options) {
-                        console.log("options", options);
                         settings = $.extend(settings, options);
 
                         // replace with defaultDate when exist
@@ -482,5 +475,17 @@
                   }
 		}
 	}
+
+      // plugin defaults 
+      $.fn.dnCalendar.defaults = { 
+            monthNames: [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ], 
+            monthNamesShort: [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Dec' ],
+            dayNames: [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            dayNamesShort: [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
+            dayUseShortName: false,
+            monthUseShortName: false,
+            showNotes: false,
+            dayClick: function(date, view) {}
+      }; 
 
 } ( jQuery ));

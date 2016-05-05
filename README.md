@@ -136,6 +136,16 @@ $("#dncalendar-container").dnCalendar({
 ```
 
 
+***Set start day of week***
+
+```
+// ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+$("#dncalendar-container").dnCalendar({
+	startWeek: 'sunday' // default is sunday
+}).build();
+```
+
+
 
 # Copyright
 

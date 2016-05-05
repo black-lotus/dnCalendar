@@ -8,14 +8,14 @@
 	<body>
 		<div id="dncalendar-container">
 		</div>
-		<script type="text/javascript" src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
 		<script type="text/javascript" src="js/dncalendar.min.js"></script>
 		<script type="text/javascript">
 		$(document).ready(function() {
 			var my_calendar = $("#dncalendar-container").dnCalendar({
-				minDate: "2015-12-15",
-				maxDate: "2016-03-01",
-				defaultDate: "2016-01-12",
+				minDate: "2016-01-15",
+				maxDate: "2016-12-01",
+				defaultDate: "2016-02-10",
 				monthNames: [ "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember" ], 
 				monthNamesShort: [ 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des' ],
 				dayNames: [ 'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
@@ -26,6 +26,7 @@
                 		{ "date": "2015-12-31", "note": ["Tahun Baru"] }
                 		],
                 showNotes: true,
+                startWeek: 'sunday',
                 dayClick: function(date, view) {
                 	alert(date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear());
                 }
@@ -36,8 +37,8 @@
 
 			// update calendar
 			my_calendar.update({
-				minDate: "2015-12-05",
-				defaultDate: "2015-12-04"
+				minDate: "2016-01-05",
+				defaultDate: "2016-02-04"
 			});
 		});
 		</script>

@@ -33,6 +33,37 @@
             // today date
             var todayDate = new Date();
 
+            var weekNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+            Array.prototype.move = function (old_index, new_index) {
+                while (old_index < 0) {
+                    old_index += this.length;
+                }
+                while (new_index < 0) {
+                    new_index += this.length;
+                }
+                if (new_index >= this.length) {
+                    var k = new_index - this.length;
+                    while ((k--) + 1) {
+                        this.push(undefined);
+                    }
+                }
+                this.splice(new_index, 0, this.splice(old_index, 1)[0]);
+                return this; // for testing purposes
+            };
+
+            var getDayIndexOfWeek = function() {
+                  console.log("settings", settings);
+
+                  for (var i = 0; i < weekNames.length; i++) {
+                        if (weekNames[i] == settings.startWeek.toLowerCase()) {
+                              return i;
+                        }
+                  }
+
+                  return 0;
+            }
+
 		/*
 		* get total weeks in month
 		*
@@ -51,7 +82,7 @@
 		/*
 		* draw calendar and give call back when date selected
 		*/
-		var draw = function() {
+		var draw = function(is_update) {
                   var m = currDate.getMonth(); // get month
                   var d = currDate.getDate(); // get date of month
                   var y = currDate.getFullYear(); // get full year
@@ -128,11 +159,36 @@
                   	weekName = settings.dayNamesShort;
                   }
 
+                  console.log("is_update", is_update);
+                  console.log("week before", weekName);
+                  // do not re-order day of week for second times
+                  var dayIndex = getDayIndexOfWeek();
+                  if (is_update == false) {
+                        // re-order week name based on startWeek settings
+                        var oldIndex = null;
+                        var newIndex = 0;
+                        for (var i = 0; i < weekName.length; i++) {
+                              if (i >= dayIndex) {
+                                    if (oldIndex == null) {
+                                          oldIndex = i;
+                                    }
+
+                                    weekName.move(oldIndex, newIndex);
+                                    oldIndex++;
+                                    newIndex++;
+                              }
+                        }
+                  }
+                  console.log("week after", weekName);
+
+                  var sundayIndex = (dayIndex == 0) ? 0 : 7 - dayIndex;
+                  var saturdayIndex = 6 - dayIndex; 
+
                   var tableHeadGroup = $("<thead></thead>");
                   var tableHeadRowGroup = $("<tr></tr>");
                   var weekNameLength = weekName.length;
                   for (var i = 0; i < weekNameLength; i++) {
-                  	tableHeadRowGroup.append("<td "+ ((i == 0 || i == weekNameLength - 1) ? 'class=\"holiday\"' : '') +">"+ weekName[i] +"</td>");
+                  	tableHeadRowGroup.append("<td "+ ((i == sundayIndex || i == saturdayIndex) ? 'class=\"holiday\"' : '') +">"+ weekName[i] +"</td>");
                   }
                   tableHeadGroup.append(tableHeadRowGroup);
 
@@ -172,9 +228,15 @@
                         } 
                   }
 
+                  var maxIndexOffDay = totalDaysInWeeks + dayIndex - 1;
+                  var sundayIndex = (dayIndex == 0) ? 0 : maxIndexOffDay - dayIndex;
+                  var saturdayIndex = (dayIndex == 0) ? totalDaysInWeeks - 1 : maxIndexOffDay - dayIndex + 1;
+
                   for (var i = 0; i < totalWeeks; i++) {
                   	var tableBodyRowGroup = $("<tr></tr>");
-                  	for (var j = 0; j < totalDaysInWeeks; j++) {
+
+                  	for (var j = dayIndex; j < totalDaysInWeeks + dayIndex; j++) {
+                             
                   		if ( (i != 0 && i != totalWeeks - 1) || (i == 0 && j >= firstDayOfMonth.getDay()) || (i == totalWeeks - 1 && j <= lastDayOfMonth.getDay())) {
               				
                                     var colDateClass = "";
@@ -190,7 +252,7 @@
                                          colDateDataAttr = "data-title='"+ defaultDateTitle +"'";
                                     }
 
-                                    if (j == 0 || j == totalDaysInWeeks - 1) {
+                                    if (j == sundayIndex || j == saturdayIndex) {
                                           colDateClass += ' holiday ';
                                     }
 
@@ -241,7 +303,7 @@
                                                 colDateDataAttr = "data-title='"+ defaultDateTitle +"'";
                                           }
 
-                                          if (j == 0 || j == totalDaysInWeeks - 1) {
+                                          if (j == sundayIndex || j == saturdayIndex) {
                                                 colDateClass += ' holiday ';
                                           }
 
@@ -285,7 +347,7 @@
                                                 colDateDataAttr = "data-title='"+ defaultDateTitle +"'";
                                           }
 
-                                          if (j == 0 || j == totalDaysInWeeks - 1) {
+                                          if (j == sundayIndex || j == saturdayIndex) {
                                                 colDateClass += ' holiday ';
                                           }
 
@@ -458,7 +520,7 @@
                               defDate = currDate;
                         }
 
-				draw();
+				draw(false);
 				triggerAction();
 			},
                   update: function(options) {
@@ -471,7 +533,7 @@
                               defDate = currDate;
                         }
 
-                        draw();
+                        draw(true);
                   }
 		}
 	}
@@ -485,6 +547,7 @@
             dayUseShortName: false,
             monthUseShortName: false,
             showNotes: false,
+            startWeek: 'sunday',
             dayClick: function(date, view) {}
       }; 
 

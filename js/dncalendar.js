@@ -28,176 +28,474 @@
 
 		// current date
 		var currDate = new Date();
-            // custom default date
-            var defDate = null;
-            // today date
-            var todayDate = new Date();
+    // custom default date
+    var defDate = null;
+    // today date
+    var todayDate = new Date();
+    // week names
+    var weekNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    // used to check week names has already restructured
+    var weekNamesHasAlreadySorted = false;
 
-            var weekNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    /**
+     * move prototype of array
+     */
+    Array.prototype.move = function (old_index, new_index) {
+        while (old_index < 0) {
+            old_index += this.length;
+        }
+        while (new_index < 0) {
+            new_index += this.length;
+        }
+        if (new_index >= this.length) {
+            var k = new_index - this.length;
+            while ((k--) + 1) {
+                this.push(undefined);
+            }
+        }
+        this.splice(new_index, 0, this.splice(old_index, 1)[0]);
+        return this; // for testing purposes
+    };
 
-            Array.prototype.move = function (old_index, new_index) {
-                while (old_index < 0) {
-                    old_index += this.length;
+    /**
+     * get selected day index of week
+     *
+     * @return int
+     */
+    var getDayIndexOfWeek = function() {
+          for (var i = 0; i < weekNames.length; i++) {
+                if (weekNames[i] == settings.startWeek.toLowerCase()) {
+                      return i;
                 }
-                while (new_index < 0) {
-                    new_index += this.length;
-                }
-                if (new_index >= this.length) {
-                    var k = new_index - this.length;
-                    while ((k--) + 1) {
-                        this.push(undefined);
-                    }
-                }
-                this.splice(new_index, 0, this.splice(old_index, 1)[0]);
-                return this; // for testing purposes
-            };
+          }
 
-            var getDayIndexOfWeek = function() {
-                  console.log("settings", settings);
+          return 0;
+    }
 
-                  for (var i = 0; i < weekNames.length; i++) {
-                        if (weekNames[i] == settings.startWeek.toLowerCase()) {
-                              return i;
+		/**
+		 * get total weeks in month
+		 *
+		 * @param int
+		 * @param int, range 1..12
+             * @return int
+		 */
+		var weekCount = function(year, month_number) {
+      var firstOfMonth = new Date(year, month_number-1, 1);
+      var lastOfMonth = new Date(year, month_number, 0);
+
+      var used = firstOfMonth.getDay() + lastOfMonth.getDate();
+
+      return Math.ceil( used / 7);
+		}
+
+    /**
+     * get total weeks in month
+     *
+     * @param int
+     * @param int, range 1..12
+     * @return array[int][int]
+     */
+    var getWeekOfMonth = function(month, year) {
+      var   weeks = [],
+            firstDate = new Date(year, month, 1),
+            lastDate = new Date(year, month+1, 0), 
+            numDays = lastDate.getDate(),
+            startDayWeek = getDayIndexOfWeek();
+
+      var lastDateOfPrevMonth = new Date(year, month, 0); // get last day of previous month
+      var prevDate = lastDateOfPrevMonth.getDate() - firstDate.getDay();
+
+      var firstDateOfNextMonth = new Date(year, month + 1, 1); // get fist day of next month
+      var nextDate = firstDateOfNextMonth.getDate();
+
+      var date = 1;
+      while (date <= numDays) {
+            var i = 0;
+
+            var tempWeek = [];
+            while (i < 7) {
+
+                  // first column
+                  if (weeks.length == 0) {
+
+                        if (i >= firstDate.getDay()) {
+                              tempWeek.push(date);
+
+                              date++;
+                        } else {
+                              prevDate++;
+                              tempWeek.push(prevDate);
+                        }
+
+                  } else {
+
+                        if (date <= numDays) {
+                              tempWeek.push(date);
+
+                              date++;
+                        } else {
+                              tempWeek.push(nextDate++);
+                        }
+                        
+                  }
+
+                  i++;
+            }
+
+            weeks.push(tempWeek);
+      }
+
+      return weeks;
+    }
+
+    /**
+     * sorting week of month by selected day
+     *
+     * @param array[int][int]
+     * @return array[int][int]
+     */
+    var sortingBySelectedDay = function(weeks, month, year) {
+      var startDayWeek = getDayIndexOfWeek();
+
+      var lastDateOfPrevMonth = new Date(year, month, 0); // get last day of previous month
+      var prevDate = lastDateOfPrevMonth.getDate();
+
+      var lastDate = new Date(year, month+1, 0).getDate(); 
+
+      function isset(arr, val) {
+            var found = false;
+            for (var m = 0; m < arr.length; m++) {
+                  if (arr[m] == val) {
+                        found = true;
+                        break;
+                  }
+            }
+
+            return found;
+      }
+
+      // sorting when startDatWeek is greater than 0 (0 is sunday)
+      if (startDayWeek > 0) {
+            var newArr = [];
+
+            var nWeeks = weeks.length;
+            for (var i = 0; i < nWeeks; i++) {
+                  var tempArr = [];
+
+                  // first row
+                  if (i == 0 && newArr.length == 0) {
+                        // check first day is sunday
+                        if (weeks[i][0] == 1) {
+                              // calculate previous date
+                              var startPrevDate = prevDate - (7 - startDayWeek - 1);
+                              while (startPrevDate <= prevDate) {
+                                    tempArr.push(startPrevDate);
+
+                                    startPrevDate++;
+                              }
+
+                              // get next date
+                              for (var j = 0; j < weeks[i].length; j++) {
+                                    if (tempArr.length < weeks[i].length) {
+
+                                          var val = weeks[i][j];
+                                          var isPush = isset(tempArr, val);
+
+                                          if (!isPush) {
+                                                tempArr.push(val);
+                                          }
+
+                                    } 
+                              }
+                        } else {
+                              for (var j = 0; j < weeks[i].length; j++) {
+                                    if (tempArr.length < weeks[i].length) {
+
+                                          if (typeof weeks[i][j + startDayWeek] !== 'undefined') {
+                                                tempArr.push(weeks[i][j + startDayWeek]);
+                                          } else {
+                                                if (typeof weeks[i + 1] !== 'undefined') {
+
+                                                      for (var k = 0; k < weeks[i + 1].length; k++) {
+
+                                                            if (tempArr.length < weeks[i].length) {
+                                                                  var val = weeks[i + 1][k];
+                                                                  var isPush = isset(tempArr, val);
+
+                                                                  if (!isPush) {
+                                                                        tempArr.push(val);
+                                                                  }
+                                                            }
+                                                            
+                                                      }
+
+                                                }
+                                          }
+
+                                    }
+                              }
+                        }
+                  } else {
+                        
+                        for (var newI = i; newI >= 0; newI--) {
+                              var found = false;
+                              for (var j = 0; j < weeks[newI].length; j++) {
+                                    var newArrRow = newArr.length - 1;
+                                    var newArrCol = newArr[newArrRow].length - 1;
+
+                                    if (newArr[newArrRow][newArrCol] == weeks[newI][j]) {
+                                          found = true;
+                                    }
+
+                                    if (found == true) {
+                                          if (typeof weeks[newI][j + startDayWeek] !== 'undefined') {
+                                                
+                                                if (tempArr.length < weeks[newI].length) {
+                                                      var val = weeks[newI][j + startDayWeek];
+                                                      var isPush = isset(tempArr, val);
+
+                                                      if (!isPush) {
+                                                            tempArr.push(weeks[newI][j + startDayWeek]);
+                                                            // console.log("first col ["+ newI +"]["+ (j + startDayWeek) +"] => " + val);
+                                                      }
+                                                }
+                                                
+                                          } else {
+                                                if (typeof weeks[newI + 1] !== 'undefined') {
+                                                      for (var k = 0; k < weeks[newI + 1].length; k++) {
+
+                                                            if (tempArr.length < weeks[newI].length) {
+                                                                  var val = weeks[newI + 1][k];
+                                                                  var isPush = isset(tempArr, val);
+
+                                                                  if (!isPush) {
+                                                                        tempArr.push(val);
+                                                                        // console.log("next col ["+ (newI + 1) +"]["+ k +"] => " + val);
+                                                                  }
+                                                            }
+
+                                                      }
+                                                }
+                                          }
+                                    }
+                              }
+                        }
+
+                  }
+
+                  newArr.push(tempArr);
+            }
+
+            // check if last date is not found
+            var found = false;
+            for (var i = 0; i < newArr.length; i++) {
+                  for (var j = 0; j < newArr[i].length; j++) {
+                        if (newArr[i][j] == lastDate) {
+                        
+                              found = true;
+                              break;
+
                         }
                   }
 
-                  return 0;
+                  if (found == true) {
+                        break;
+                  }
             }
 
-		/*
-		* get total weeks in month
-		*
-		* @param int
-		* @param int, range 1..12
-		*/
-		var weekCount = function(year, month_number) {
-		    var firstOfMonth = new Date(year, month_number-1, 1);
-		    var lastOfMonth = new Date(year, month_number, 0);
+            var newArrRow = newArr.length - 1;
 
-		    var used = firstOfMonth.getDay() + lastOfMonth.getDate();
+            if (found == false) {
+                  var newArrCol = newArr[newArrRow].length - 1;
+                  var lastDateInNewArr = newArr[newArrRow][newArrCol];
 
-		    return Math.ceil( used / 7);
-		}
+                  var tempArr = [];
+                  while (lastDateInNewArr < lastDate) {
+                        lastDateInNewArr++;
+
+                        tempArr.push(lastDateInNewArr);
+                  }
+
+                  if (tempArr.length < 7) {
+                        var limit = 7 - tempArr.length;
+                        var date = 1;
+
+                        while (date <= limit) {
+                              tempArr.push(date);
+
+                              date++;
+                        }
+                  }
+
+                  newArr.push(tempArr);
+            } else {
+                  var newArrCol = newArr[newArrRow].length - 1;
+                  var lastDateInNewArr = newArr[newArrRow][newArrCol];
+                  var colLeft = 7 - (newArrCol + 1);
+
+                  if (lastDateInNewArr > 7) {
+                    lastDateInNewArr = 1;
+                  } else {
+                    lastDateInNewArr = lastDateInNewArr + 1;
+                  }
+
+                  while (colLeft > 0) {
+                    newArr[newArrRow].push(lastDateInNewArr);
+
+                    lastDateInNewArr++;
+                    colLeft--;
+                  }
+
+                  console.log("newArrCol", newArrCol);
+                  console.log("colLeft", colLeft);
+            }
+
+            return newArr;
+      }
+
+      return weeks;
+    }
 
 		/*
 		* draw calendar and give call back when date selected
 		*/
-		var draw = function(is_update) {
-                  var m = currDate.getMonth(); // get month
-                  var d = currDate.getDate(); // get date of month
-                  var y = currDate.getFullYear(); // get full year
+		var draw = function() {
+          var m = currDate.getMonth(); // get month
+          var d = currDate.getDate(); // get date of month
+          var y = currDate.getFullYear(); // get full year
 
-                  // get month name
-                  var headerMonth = settings.monthNames[m];
-                  if (settings.monthUseShortName == true) {
-                  	headerMonth = settings.monthNamesShort[m];
-                  }
+          var dates = getWeekOfMonth(m, y);
+          for (var i = 0; i < dates.length; i++) {
+                var string = "";
+                for (var j = 0; j < dates[i].length; j++) {
+                      string += dates[i][j] + " ";
+                }
+                console.log(i + " => " + string);
+          }
 
-                  // create header label
-                  var headerGroup = $("<div id='dncalendar-header' class='dncalendar-header'></div>");
-                  headerGroup.append("<h2>"+ headerMonth +" "+ y +"</h2>");
+          console.log("--------------------------------");
+          dates = sortingBySelectedDay(dates, m, y);
+          for (var i = 0; i < dates.length; i++) {
+                var string = "";
+                for (var j = 0; j < dates[i].length; j++) {
+                      string += dates[i][j] + " ";
+                }
+                console.log(i + " => " + string);
+          }
 
-                  // determine prev link as false
-                  var prevInactive = false;
+          // get month name
+          var headerMonth = settings.monthNames[m];
+          if (settings.monthUseShortName == true) {
+          	headerMonth = settings.monthNamesShort[m];
+          }
 
-                  // set prev link as true when minDate is exist and current date is less than or equal minDate
-                  var minDate = null;
-                  if (typeof settings.minDate !== 'undefined') {
-                  	var minDateArr = settings.minDate.split('-');
-                  	minDate = new Date(minDateArr[0], minDateArr[1] - 1, minDateArr[2]);
-                  	
-                  	if (minDate.getFullYear() >= y) {
-                  		if (minDate.getMonth() >= m) {
-                  			prevInactive = true;
-                  		}
-                  	}
-                  }
+          // create header label
+          var headerGroup = $("<div id='dncalendar-header' class='dncalendar-header'></div>");
+          headerGroup.append("<h2>"+ headerMonth +" "+ y +"</h2>");
 
-                  // determine prev link as false
-                  var nextInactive = false;
+          // determine prev link as false
+          var prevInactive = false;
 
-                  // set next link as true when maxDate is exist and current date is greater than or equal maxDate
-                  var maxDate = null;
-                  if (typeof settings.maxDate !== 'undefined') {
-                  	var maxDateArr = settings.maxDate.split('-');
-                  	maxDate = new Date(maxDateArr[0], maxDateArr[1] - 1, maxDateArr[2]);
-                  	
-                  	if (maxDate.getFullYear() <= y) {
-                  		if (maxDate.getMonth() <= m) {
-                  			nextInactive = true;
-                  		}
-                  	}
-                  }
+          // set prev link as true when minDate is exist and current date is less than or equal minDate
+          var minDate = null;
+          if (typeof settings.minDate !== 'undefined') {
+          	var minDateArr = settings.minDate.split('-');
+          	minDate = new Date(minDateArr[0], minDateArr[1] - 1, minDateArr[2]);
+          	
+          	if (minDate.getFullYear() >= y) {
+          		if (minDate.getMonth() >= m) {
+          			prevInactive = true;
+          		}
+          	}
+          }
 
-                  // create link group
-                  var calendarLinksGroup = $("<div id='dncalendar-links' class='dncalendar-links'></div>");
-                  var prevLinkGroup = $("<div id='dncalendar-prev-month' class='dncalendar-prev-month'></div>");
-                  var nextLinkGroup = $("<div id='dncalendar-next-month' class='dncalendar-next-month'></div>");
+          // determine prev link as false
+          var nextInactive = false;
 
-                  // disable prev link
-                  if (prevInactive) {
-                  	prevLinkGroup.addClass("dncalendar-inactive");
-                  	prevLinkGroup.removeAttr("id");
-                  }
+          // set next link as true when maxDate is exist and current date is greater than or equal maxDate
+          var maxDate = null;
+          if (typeof settings.maxDate !== 'undefined') {
+          	var maxDateArr = settings.maxDate.split('-');
+          	maxDate = new Date(maxDateArr[0], maxDateArr[1] - 1, maxDateArr[2]);
+          	
+          	if (maxDate.getFullYear() <= y) {
+          		if (maxDate.getMonth() <= m) {
+          			nextInactive = true;
+          		}
+          	}
+          }
 
-                  // disable next link
-                  if (nextInactive) {
-                  	nextLinkGroup.addClass("dncalendar-inactive");
-                  	nextLinkGroup.removeAttr("id");
-                  }
+          // create link group
+          var calendarLinksGroup = $("<div id='dncalendar-links' class='dncalendar-links'></div>");
+          var prevLinkGroup = $("<div id='dncalendar-prev-month' class='dncalendar-prev-month'></div>");
+          var nextLinkGroup = $("<div id='dncalendar-next-month' class='dncalendar-next-month'></div>");
 
-                  // add link group into header
-                  calendarLinksGroup.append(prevLinkGroup);
-                  calendarLinksGroup.append(nextLinkGroup);
-                  headerGroup.append(calendarLinksGroup);
+          // disable prev link
+          if (prevInactive) {
+          	prevLinkGroup.addClass("dncalendar-inactive");
+          	prevLinkGroup.removeAttr("id");
+          }
 
-                  var bodyGroup = $("<div id='dncalendar-body' class='dncalendar-body'></div>");
-                  var tableGroup = $("<table></table>");
+          // disable next link
+          if (nextInactive) {
+          	nextLinkGroup.addClass("dncalendar-inactive");
+          	nextLinkGroup.removeAttr("id");
+          }
 
-                  var weekName = settings.dayNames;
-                  if (settings.dayUseShortName == true) {
-                  	weekName = settings.dayNamesShort;
-                  }
+          // add link group into header
+          calendarLinksGroup.append(prevLinkGroup);
+          calendarLinksGroup.append(nextLinkGroup);
+          headerGroup.append(calendarLinksGroup);
 
-                  console.log("is_update", is_update);
-                  console.log("week before", weekName);
-                  // do not re-order day of week for second times
-                  var dayIndex = getDayIndexOfWeek();
-                  if (is_update == false) {
-                        // re-order week name based on startWeek settings
-                        var oldIndex = null;
-                        var newIndex = 0;
-                        for (var i = 0; i < weekName.length; i++) {
-                              if (i >= dayIndex) {
-                                    if (oldIndex == null) {
-                                          oldIndex = i;
-                                    }
+          var bodyGroup = $("<div id='dncalendar-body' class='dncalendar-body'></div>");
+          var tableGroup = $("<table></table>");
 
-                                    weekName.move(oldIndex, newIndex);
-                                    oldIndex++;
-                                    newIndex++;
-                              }
-                        }
-                  }
-                  console.log("week after", weekName);
+          var weekName = settings.dayNames;
+          if (settings.dayUseShortName == true) {
+          	weekName = settings.dayNamesShort;
+          }
 
-                  var sundayIndex = (dayIndex == 0) ? 0 : 7 - dayIndex;
-                  var saturdayIndex = 6 - dayIndex; 
+          
+          // do not re-order day of week for second times
+          var dayIndex = getDayIndexOfWeek();
+          if (weekNamesHasAlreadySorted == false) {
+                // re-order week name based on startWeek settings
+                var oldIndex = null;
+                var newIndex = 0;
+                for (var i = 0; i < weekName.length; i++) {
+                      if (i >= dayIndex) {
+                            if (oldIndex == null) {
+                                  oldIndex = i;
+                            }
 
-                  var tableHeadGroup = $("<thead></thead>");
-                  var tableHeadRowGroup = $("<tr></tr>");
-                  var weekNameLength = weekName.length;
-                  for (var i = 0; i < weekNameLength; i++) {
-                  	tableHeadRowGroup.append("<td "+ ((i == sundayIndex || i == saturdayIndex) ? 'class=\"holiday\"' : '') +">"+ weekName[i] +"</td>");
-                  }
-                  tableHeadGroup.append(tableHeadRowGroup);
+                            weekName.move(oldIndex, newIndex);
+                            oldIndex++;
+                            newIndex++;
+                      }
+                }
 
-                  var tableBodyGroup = $("<tbody></tbody>");
-                  var totalWeeks = weekCount(y, m + 1);
-                  var totalDaysInWeeks = 7;
-                  var startDate = 1;
+                weekNamesHasAlreadySorted = true
+          }
+          console.log("week after", weekName);
 
-                  var firstDayOfMonth = new Date(y, m, 1); // get first day of month
+          var sundayIndex = (dayIndex == 0) ? 0 : 7 - dayIndex;
+          var saturdayIndex = 6 - dayIndex; 
+
+          var tableHeadGroup = $("<thead></thead>");
+          var tableHeadRowGroup = $("<tr></tr>");
+          var weekNameLength = weekName.length;
+          for (var i = 0; i < weekNameLength; i++) {
+          	tableHeadRowGroup.append("<td "+ ((i == sundayIndex || i == saturdayIndex) ? 'class=\"holiday\"' : '') +">"+ weekName[i] +"</td>");
+          }
+          tableHeadGroup.append(tableHeadRowGroup);
+
+          var tableBodyGroup = $("<tbody></tbody>");
+          var totalWeeks = weekCount(y, m + 1);
+          console.log("totalWeeks", totalWeeks);
+          var totalDaysInWeeks = 7;
+          var startDate = 1;
+
+          var firstDayOfMonth = new Date(y, m, 1); // get first day of month
       		var lastDayOfMonth = new Date(y, m + 1, 0); // get last day of month
       		
       		var lastDateOfPrevMonth = new Date(y, m, 0); // get last day of previous month
@@ -216,258 +514,189 @@
       			limitMaxDate = maxDate.getDate();
       		}
 
-                  var todayTitle = 'today';
-                  var defaultDateTitle = 'default date';
-                  if (typeof settings.dataTitles !== 'undefined') {
-                        if (typeof settings.dataTitles.defaultDate !== 'undefined') {
-                              defaultDateTitle = settings.dataTitles.defaultDate;
-                        }  
+          var todayTitle = 'today';
+          var defaultDateTitle = 'default date';
+          if (typeof settings.dataTitles !== 'undefined') {
+                if (typeof settings.dataTitles.defaultDate !== 'undefined') {
+                      defaultDateTitle = settings.dataTitles.defaultDate;
+                }  
 
-                        if (typeof settings.dataTitles.today !== 'undefined') {
-                              todayTitle = settings.dataTitles.today;
-                        } 
+                if (typeof settings.dataTitles.today !== 'undefined') {
+                      todayTitle = settings.dataTitles.today;
+                } 
+          }
+
+          var sundayIndex = (dayIndex == 0) ? 0 : 7 - dayIndex;
+          var saturdayIndex = (dayIndex == 0) ? 7 - 1 : 7 - (dayIndex + 1);
+
+          console.log("sundayIndex", sundayIndex);
+          console.log("saturdayIndex", saturdayIndex);
+
+          var nDates = dates.length;
+          for (var i = 0; i < nDates; i++) {
+            var tableBodyRowGroup = $("<tr></tr>");
+
+            var nDate = dates[i].length;
+            for (var j = 0; j < nDate; j++) {
+
+              var date = dates[i][j];
+              var month = m + 1;
+              var year = y;
+
+              var colDateClass = "";
+              var colDateDataAttr = "";
+
+              var showCalendarClick = true;
+
+              // check first row
+              if (i == 0) {
+                if (dates[i][j] > 7) {
+                  showCalendarClick = false;
+                  month = month - 1;
+
+                  if (month <= 0) {
+                    month = 12;
+                    year = year - 1;
                   }
+                }
+              }
 
-                  var maxIndexOffDay = totalDaysInWeeks + dayIndex - 1;
-                  var sundayIndex = (dayIndex == 0) ? 0 : maxIndexOffDay - dayIndex;
-                  var saturdayIndex = (dayIndex == 0) ? totalDaysInWeeks - 1 : maxIndexOffDay - dayIndex + 1;
+              // check last row
+              if (i == nDates - 1) {
+                if (dates[i][j] <= 7) {
+                  showCalendarClick = false;
+                  month = month + 1;
 
-                  for (var i = 0; i < totalWeeks; i++) {
-                  	var tableBodyRowGroup = $("<tr></tr>");
+                  if (month >= 12) {
+                    month = 1;
+                    year = year + 1;
+                  }
+                }
+              }
 
-                  	for (var j = dayIndex; j < totalDaysInWeeks + dayIndex; j++) {
-                             
-                  		if ( (i != 0 && i != totalWeeks - 1) || (i == 0 && j >= firstDayOfMonth.getDay()) || (i == totalWeeks - 1 && j <= lastDayOfMonth.getDay())) {
-              				
-                                    var colDateClass = "";
-                                    var colDateDataAttr = "";
+              // check date is today
+              if (todayDate.getFullYear() == year && todayDate.getMonth() == month && todayDate.getDate() == date) {
+                colDateClass = ' today-date ';
+                colDateDataAttr = "data-title='"+ todayTitle +"'";
+              }
 
-                                    if (todayDate.getFullYear() == y && todayDate.getMonth() == m && todayDate.getDate() == startDate) {
-                                          colDateClass = ' today-date ';
-                                          colDateDataAttr = "data-title='"+ todayTitle +"'";
-                                    }
+              // check date is default date
+              if (defDate != null && defDate.getFullYear() == year && defDate.getMonth() == month && defDate.getDate() == date) {
+                colDateClass = ' default-date ';
+                colDateDataAttr = "data-title='"+ defaultDateTitle +"'";
+              }
 
-                                    if (defDate != null && defDate.getFullYear() == y && defDate.getMonth() == m && defDate.getDate() == startDate) {
-                                         colDateClass = ' default-date ';
-                                         colDateDataAttr = "data-title='"+ defaultDateTitle +"'";
-                                    }
+              if (j == sundayIndex || j == saturdayIndex) {
+                colDateClass += ' holiday ';
+              }
 
-                                    if (j == sundayIndex || j == saturdayIndex) {
-                                          colDateClass += ' holiday ';
-                                    }
+              // check date is noted
+              if (typeof settings.notes !== 'undefined') {
+                if (dateIsNotes(new Date(year, month - 1, date))) {
+                  colDateClass += " note ";
+                }
+              }
 
-                                    if (typeof settings.notes !== 'undefined') {
-                                          if (dateIsNotes(new Date(y, m, startDate))) {
-                                                colDateClass += " note ";
-                                          }
-                                    }
+              var colDate = "<td id='calendarClick' class='"+ colDateClass +" "+ ((showCalendarClick == true) ? 'calendarClick' : '') +"' data-date='"+ date +"' data-month='"+ month +"' data-year='"+ year +"'><div class='entry' "+ colDateDataAttr +">"+ date +"</div></td>";
+              
+              if (minDate != null) {
+                var myCurrentDate = new Date(year, month - 1, date);
 
-                                    var colDate = "<td id='calendarClick' class='"+ colDateClass +" calendarClick' data-date='"+ startDate +"' data-month='"+ (m+1) +"' data-year='"+ y +"'><div class='entry' "+ colDateDataAttr +">"+ startDate +"</div></td>";
+                if (minDate > myCurrentDate) {
+                  colDate = "<td class='"+ colDateClass +"' data-date='"+ date +"' data-month='"+ month +"' data-year='"+ year +"'><div class='entry' "+ colDateDataAttr +">"+ date +"</div></td>";
+                }
+              } 
 
-                                    if (minDate != null) {
-              					if (minDate.getFullYear() >= y) {
-                  					if (minDate.getMonth() >= m && startDate < limitMinDate) {
-                                                      
-                                                      colDate = "<td class='"+ colDateClass +"' data-date='"+ startDate +"' data-month='"+ (m+1) +"' data-year='"+ y +"'><div class='entry' "+ colDateDataAttr +">"+ startDate +"</div></td>";
-                                                      
-                  					}
-                  				}
-              				} 
+              if (maxDate != null) {
+                var myCurrentDate = new Date(year, month - 1, date);
+                if (maxDate < myCurrentDate) {
+                  colDate = "<td class='"+ colDateClass +"' data-date='"+ date +"' data-month='"+ month +"' data-year='"+ year +"'><div class='entry' "+ colDateDataAttr +">"+ date +"</div></td>";
+                }
+              }
 
-              				if (maxDate != null) {
-              					if (maxDate.getFullYear() <= y) {
-                  					if (maxDate.getMonth() <= m && startDate > limitMaxDate) {
-                                                     
-                                                      colDate = "<td class='"+ colDateClass +"' data-date='"+ startDate +"' data-month='"+ (m+1) +"' data-year='"+ y +"'><div class='entry' "+ colDateDataAttr +">"+ startDate +"</div></td>";
-                                                      
-                  					}
-                  				}
-              				}
+              tableBodyRowGroup.append(colDate);
+            }
 
-              				tableBodyRowGroup.append(colDate);
+            tableBodyGroup.append(tableBodyRowGroup);
+          }
 
-              				startDate++;
-                  		} else {
-                                    // first row of calendar
-                  			if (i == 0) {
-                                          var colDateClass = "";
-                                          var colDateDataAttr = "";
+          var notesGroup = "";
+          if (settings.showNotes) {
+                var notes = getNotesThisMonth();
+                var notesLength = notes.length;
 
-                                          if (todayDate.getFullYear() == lastDateOfPrevMonth.getFullYear() && todayDate.getMonth() == lastDateOfPrevMonth.getMonth() && todayDate.getDate() == prevDate) {
-                                                colDateClass = ' today-date ';
-                                                colDateDataAttr = "data-title='"+ todayTitle +"'";
-                                          }
+                if (notesLength > 0) {
+                      notesGroup = $("<ul class='dncalendar-note-list'></ul>");
 
-                                          if (defDate != null && defDate.getFullYear() == lastDateOfPrevMonth.getFullYear() && defDate.getMonth() == lastDateOfPrevMonth.getMonth() && defDate.getDate() == prevDate) {
-                                                colDateClass = ' default-date ';
-                                                colDateDataAttr = "data-title='"+ defaultDateTitle +"'";
-                                          }
+                      for (var i = 0; i < notesLength; i++) {
+                            var date = notes[i].date;
+                            var noteList = notes[i].notes;
+                            var noteListLength = noteList.length;
 
-                                          if (j == sundayIndex || j == saturdayIndex) {
-                                                colDateClass += ' holiday ';
-                                          }
+                            var list = "";
+                            list += "<li class='date'>";
+                            list += "<span>"+ date +"</span> ";
 
-                                          if (typeof settings.notes !== 'undefined') {
-                                                if (dateIsNotes(new Date(lastDateOfPrevMonth.getFullYear(), lastDateOfPrevMonth.getMonth(), prevDate))) {
-                                                     
-                                                      colDateClass += " note ";
+                            if (noteListLength > 0) {
+                                  list += " : ";
 
-                                                }
-                                          }
+                                  for (var j = 0; j < noteListLength; j++) {
+                                        list += noteList[j];
+                                        if (noteListLength <= j) {
+                                              list += ", ";
+                                        }
+                                  }
+                            }
+                            
+                            list += "</li>";
 
-                  				var colDate = "<td id='calendarClick' class='"+ colDateClass +"' data-date='"+ prevDate +"' data-month='"+ (lastDateOfPrevMonth.getMonth() + 1) +"' data-year='"+ lastDateOfPrevMonth.getFullYear() +"'><div class='entry' "+ colDateDataAttr +">"+ prevDate +"</div></td>";
-                  				
-                                          if (minDate != null) {
-                                                if (minDate.getFullYear() > lastDateOfPrevMonth.getFullYear()) {
-                                                      colDate = "<td class='"+ colDateClass +"' data-date='"+ prevDate +"' data-month='"+ (lastDateOfPrevMonth.getMonth() + 1) +"' data-year='"+ lastDateOfPrevMonth.getFullYear() +"'><div class='entry' "+ colDateDataAttr +">"+ prevDate +"</div></td>";
-                                                } else {
-                                                      if (minDate.getFullYear() == lastDateOfPrevMonth.getFullYear() && minDate.getMonth() > lastDateOfPrevMonth.getMonth()) {
-                                                            colDate = "<td class='"+ colDateClass +"' data-date='"+ prevDate +"' data-month='"+ (lastDateOfPrevMonth.getMonth() + 1) +"' data-year='"+ lastDateOfPrevMonth.getFullYear() +"'><div class='entry' "+ colDateDataAttr +">"+ prevDate +"</div></td>";
-                                                      }
-                                                }
-                  				}
+                            notesGroup.append(list);
+                      }
+                }
+          } 
 
-                  				tableBodyRowGroup.append(colDate);
+          tableGroup.append(tableHeadGroup);
+          tableGroup.append(tableBodyGroup);
+          bodyGroup.append(tableGroup);
 
-                  				prevDate++;
-                  			}
-
-                                    // last row of calendar
-                  			if (i == totalWeeks - 1){
-                                          var colDateClass = "";
-                                          var colDateDataAttr = "";
-
-                                          if (todayDate.getFullYear() == firstDateOfNextMonth.getFullYear() && todayDate.getMonth() == firstDateOfNextMonth.getMonth() && todayDate.getDate() == nextDate) {
-                                                colDateClass = ' today-date ';
-                                                colDateDataAttr = "data-title='"+ todayTitle +"'";
-                                          }
-
-                                          if (defDate != null && defDate.getFullYear() == firstDateOfNextMonth.getFullYear() && defDate.getMonth() == firstDateOfNextMonth.getMonth() && defDate.getDate() == nextDate) {
-                                                colDateClass = ' default-date ';
-                                                colDateDataAttr = "data-title='"+ defaultDateTitle +"'";
-                                          }
-
-                                          if (j == sundayIndex || j == saturdayIndex) {
-                                                colDateClass += ' holiday ';
-                                          }
-
-                                          if (typeof settings.notes !== 'undefined') {
-                                                if (dateIsNotes(new Date(firstDateOfNextMonth.getFullYear(), firstDateOfNextMonth.getMonth(), nextDate))) {
-                                                     
-                                                      colDateClass += " note ";
-
-                                                }
-                                          }
-
-                  				var colDate = "<td id='calendarClick' class='"+ colDateClass +"' data-date='"+ nextDate +"' data-month='"+ (firstDateOfNextMonth.getMonth() + 1) +"' data-year='"+ firstDateOfNextMonth.getFullYear() +"'><div class='entry' "+ colDateDataAttr +">"+ nextDate +"</div></td>";
-                  			
-                                          if (maxDate != null) {
-                  					if (maxDate.getFullYear() <= firstDateOfNextMonth.getFullYear()) {
-                  						
-                                                      if (maxDate.getMonth() <= firstDateOfNextMonth.getMonth()) {
-                                                            if (maxDate.getMonth() < firstDateOfNextMonth.getMonth()) {
-                                                                  
-                                                                  colDate = "<td class='"+ colDateClass +"' data-date='"+ nextDate +"' data-month='"+ (firstDateOfNextMonth.getMonth() + 1) +"' data-year='"+ firstDateOfNextMonth.getFullYear() +"'><div class='entry' "+ colDateDataAttr +">"+ nextDate +"</div></td>";
-                                                                  
-                                                            } else {
-                                                                  if (limitMaxDate < nextDate) {
-                                                                        
-                                                                        colDate = "<td class='"+ colDateClass +"' data-date='"+ nextDate +"' data-month='"+ (firstDateOfNextMonth.getMonth() + 1) +"' data-year='"+ firstDateOfNextMonth.getFullYear() +"'><div class='entry' "+ colDateDataAttr +">"+ nextDate +"</div></td>";
-                                                                        
-                                                                  }
-                                                            }
-                  						}
-
-                  					}
-                  				}
-
-                  				tableBodyRowGroup.append(colDate);
-                  				
-                  				nextDate++;
-                  			}
-                  		}
-                  		
-                  	} // end for (j)
-                  	tableBodyGroup.append(tableBodyRowGroup);
-                  } // end for (i)
-
-                  var notesGroup = "";
-                  if (settings.showNotes) {
-                        var notes = getNotesThisMonth();
-                        var notesLength = notes.length;
-
-                        if (notesLength > 0) {
-                              notesGroup = $("<ul class='dncalendar-note-list'></ul>");
-
-                              for (var i = 0; i < notesLength; i++) {
-                                    var date = notes[i].date;
-                                    var noteList = notes[i].notes;
-                                    var noteListLength = noteList.length;
-
-                                    var list = "";
-                                    list += "<li class='date'>";
-                                    list += "<span>"+ date +"</span> ";
-
-                                    if (noteListLength > 0) {
-                                          list += " : ";
-
-                                          for (var j = 0; j < noteListLength; j++) {
-                                                list += noteList[j];
-                                                if (noteListLength <= j) {
-                                                      list += ", ";
-                                                }
-                                          }
-                                    }
-                                    
-                                    list += "</li>";
-
-                                    notesGroup.append(list);
-                              }
-                        }
-                  } 
-
-                  tableGroup.append(tableHeadGroup);
-                  tableGroup.append(tableBodyGroup);
-                  bodyGroup.append(tableGroup);
-
-			self.html("");
-			self.append(headerGroup);
-			self.append(bodyGroup);
-                  self.append(notesGroup);
+    			self.html("");
+    			self.append(headerGroup);
+    			self.append(bodyGroup);
+          self.append(notesGroup);
 		}
 
-            var dateIsNotes = function(date) {
-                  var notesLength = settings.notes.length;
-                  for (var i = 0; i < notesLength; i++) {
-                        var dateNote = settings.notes[i].date.split('-');
-                        var nDate = new Date(dateNote[0], dateNote[1] - 1, dateNote[2]);
+    var dateIsNotes = function(date) {
+          var notesLength = settings.notes.length;
+          for (var i = 0; i < notesLength; i++) {
+                var dateNote = settings.notes[i].date.split('-');
+                var nDate = new Date(dateNote[0], dateNote[1] - 1, dateNote[2]);
 
-                        if ( nDate.getFullYear() == date.getFullYear() && nDate.getMonth() == date.getMonth() && nDate.getDate() == date.getDate() ) {
-                              return true;
-                        }
-                  }
+                if ( nDate.getFullYear() == date.getFullYear() && nDate.getMonth() == date.getMonth() && nDate.getDate() == date.getDate() ) {
+                      return true;
+                }
+          }
 
-                  return false;
-            }
+          return false;
+    }
 
-            var getNotesThisMonth = function() {
-                  var result = [];
-                  var notesLength = settings.notes.length;
-                  for (var i = 0; i < notesLength; i++) {
-                        var dateNote = settings.notes[i].date.split('-');
-                        var nDate = new Date(dateNote[0], dateNote[1] - 1, dateNote[2]);
-                        
-                        if (nDate.getFullYear() == currDate.getFullYear() && nDate.getMonth() == currDate.getMonth()) {
-                              var temp = {};
-                              temp['date'] = nDate.getDate();
-                              temp['notes'] = settings.notes[i].note;
+    var getNotesThisMonth = function() {
+          var result = [];
+          var notesLength = settings.notes.length;
+          for (var i = 0; i < notesLength; i++) {
+                var dateNote = settings.notes[i].date.split('-');
+                var nDate = new Date(dateNote[0], dateNote[1] - 1, dateNote[2]);
+                
+                if (nDate.getFullYear() == currDate.getFullYear() && nDate.getMonth() == currDate.getMonth()) {
+                      var temp = {};
+                      temp['date'] = nDate.getDate();
+                      temp['notes'] = settings.notes[i].note;
 
-                              result.push(temp);
-                        }
-                  }
+                      result.push(temp);
+                }
+          }
 
-                  return result;
-            }
+          return result;
+    }
 
 		var nextMonth = function() {
 			var firstDateOfNextMonth = new Date(currDate.getFullYear(), currDate.getMonth() + 1, 1); // get fist day of next month
@@ -520,35 +749,35 @@
                               defDate = currDate;
                         }
 
-				draw(false);
+				draw();
 				triggerAction();
 			},
-                  update: function(options) {
-                        settings = $.extend(settings, options);
+      update: function(options) {
+            settings = $.extend(settings, options);
 
-                        // replace with defaultDate when exist
-                        if (typeof settings.defaultDate !== 'undefined') {
-                              var defaultDateArr = settings.defaultDate.split('-');
-                              currDate = new Date(defaultDateArr[0], defaultDateArr[1] - 1, defaultDateArr[2]);
-                              defDate = currDate;
-                        }
+            // replace with defaultDate when exist
+            if (typeof settings.defaultDate !== 'undefined') {
+                  var defaultDateArr = settings.defaultDate.split('-');
+                  currDate = new Date(defaultDateArr[0], defaultDateArr[1] - 1, defaultDateArr[2]);
+                  defDate = currDate;
+            }
 
-                        draw(true);
-                  }
+            draw();
+      }
 		}
 	}
 
-      // plugin defaults 
-      $.fn.dnCalendar.defaults = { 
-            monthNames: [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ], 
-            monthNamesShort: [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Dec' ],
-            dayNames: [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-            dayNamesShort: [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
-            dayUseShortName: false,
-            monthUseShortName: false,
-            showNotes: false,
-            startWeek: 'sunday',
-            dayClick: function(date, view) {}
-      }; 
+  // plugin defaults 
+  $.fn.dnCalendar.defaults = { 
+        monthNames: [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ], 
+        monthNamesShort: [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec' ],
+        dayNames: [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        dayNamesShort: [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ],
+        dayUseShortName: false,
+        monthUseShortName: false,
+        showNotes: false,
+        startWeek: 'sunday',
+        dayClick: function(date, view) {}
+  }; 
 
 } ( jQuery ));

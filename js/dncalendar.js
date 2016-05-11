@@ -575,7 +575,7 @@
               }
 
               // check date is today
-              if (todayDate.getFullYear() == year && todayDate.getMonth() == month && todayDate.getDate() == date) {
+              if (todayDate.getFullYear() == year && (todayDate.getMonth() + 1) == month && todayDate.getDate() == date) {
                 colDateClass = ' today-date ';
                 colDateDataAttr = "data-title='"+ todayTitle +"'";
               }
@@ -601,7 +601,6 @@
               
               if (minDate != null) {
                 var myCurrentDate = new Date(year, month - 1, date);
-
                 if (minDate > myCurrentDate) {
                   colDate = "<td class='"+ colDateClass +"' data-date='"+ date +"' data-month='"+ month +"' data-year='"+ year +"'><div class='entry' "+ colDateDataAttr +">"+ date +"</div></td>";
                 }

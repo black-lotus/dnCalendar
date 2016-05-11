@@ -581,7 +581,7 @@
               }
 
               // check date is default date
-              if (defDate != null && defDate.getFullYear() == year && defDate.getMonth() == month && defDate.getDate() == date) {
+              if (defDate != null && defDate.getFullYear() == year && (defDate.getMonth() + 1) == month && defDate.getDate() == date) {
                 colDateClass = ' default-date ';
                 colDateDataAttr = "data-title='"+ defaultDateTitle +"'";
               }

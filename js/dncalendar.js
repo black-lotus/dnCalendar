@@ -568,7 +568,7 @@
                   month = month + 1;
 
                   if (month >= 12) {
-                    month = 1;
+                    month = 0;
                     year = year + 1;
                   }
                 }

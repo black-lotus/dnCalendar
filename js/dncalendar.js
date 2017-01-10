@@ -238,7 +238,7 @@
                               }
                         }
                   } else {
-                        
+                    
                     for (var newI = i; newI >= 0; newI--) {
                       var found = false;
                       for (var j = 0; j < weeks[newI].length; j++) {
@@ -257,8 +257,26 @@
                                               var isPush = isset(tempArr, val);
 
                                               if (!isPush) {
+                                                /**
+                                                 * Temporary bug fixes 
+                                                 * last date of next month wrong
+                                                 */
+                                                if (typeof tempArr[tempArr.length - 1] !== 'undefined') {
+                                                  var lastIndexTempArr = tempArr[tempArr.length - 1];
+
+                                                  if (lastIndexTempArr + 1 != val && lastIndexTempArr + 1 < lastDate) {
+                                                    tempArr.push(lastIndexTempArr + 1);
+                                                  } else {
                                                     tempArr.push(weeks[newI][j + startDayWeek]);
-                                                    console.log("first col ["+ newI +"]["+ (j + startDayWeek) +"] => " + val);
+                                                    // console.log("first col ["+ newI +"]["+ (j + startDayWeek) +"] => " + val);
+                                                  }
+                                                } else {
+                                                  tempArr.push(weeks[newI][j + startDayWeek]);
+                                                  // console.log("first col ["+ newI +"]["+ (j + startDayWeek) +"] => " + val);
+                                                }
+
+                                                  // tempArr.push(weeks[newI][j + startDayWeek]);
+                                                  // console.log("first col ["+ newI +"]["+ (j + startDayWeek) +"] => " + val);
                                               }
                                         }
                                         
@@ -280,10 +298,9 @@
                                         }
                                   }
                             }
+                        }
                       }
-                    }
-
-                    console.log("tempArr", tempArr);
+                    
                   }
 
                   newArr.push(tempArr);

@@ -145,6 +145,8 @@
             weeks.push(tempWeek);
       }
 
+      console.log("numDays", numDays);
+
       return weeks;
     }
 
@@ -237,58 +239,60 @@
                         }
                   } else {
                         
-                        for (var newI = i; newI >= 0; newI--) {
-                              var found = false;
-                              for (var j = 0; j < weeks[newI].length; j++) {
-                                    var newArrRow = newArr.length - 1;
-                                    var newArrCol = newArr[newArrRow].length - 1;
+                    for (var newI = i; newI >= 0; newI--) {
+                      var found = false;
+                      for (var j = 0; j < weeks[newI].length; j++) {
+                            var newArrRow = newArr.length - 1;
+                            var newArrCol = newArr[newArrRow].length - 1;
 
-                                    if (newArr[newArrRow][newArrCol] == weeks[newI][j]) {
-                                          found = true;
-                                    }
+                            if (newArr[newArrRow][newArrCol] == weeks[newI][j]) {
+                                  found = true;
+                            }
 
-                                    if (found == true) {
-                                          if (typeof weeks[newI][j + startDayWeek] !== 'undefined') {
-                                                
-                                                if (tempArr.length < weeks[newI].length) {
-                                                      var val = weeks[newI][j + startDayWeek];
-                                                      var isPush = isset(tempArr, val);
+                            if (found == true) {
+                                  if (typeof weeks[newI][j + startDayWeek] !== 'undefined') {
+                                        
+                                        if (tempArr.length < weeks[newI].length) {
+                                              var val = weeks[newI][j + startDayWeek];
+                                              var isPush = isset(tempArr, val);
 
-                                                      if (!isPush) {
-                                                            tempArr.push(weeks[newI][j + startDayWeek]);
-                                                            // console.log("first col ["+ newI +"]["+ (j + startDayWeek) +"] => " + val);
-                                                      }
-                                                }
-                                                
-                                          } else {
-                                                if (typeof weeks[newI + 1] !== 'undefined') {
-                                                      for (var k = 0; k < weeks[newI + 1].length; k++) {
+                                              if (!isPush) {
+                                                    tempArr.push(weeks[newI][j + startDayWeek]);
+                                                    console.log("first col ["+ newI +"]["+ (j + startDayWeek) +"] => " + val);
+                                              }
+                                        }
+                                        
+                                  } else {
+                                        if (typeof weeks[newI + 1] !== 'undefined') {
+                                              for (var k = 0; k < weeks[newI + 1].length; k++) {
 
-                                                            if (tempArr.length < weeks[newI].length) {
-                                                                  var val = weeks[newI + 1][k];
-                                                                  var isPush = isset(tempArr, val);
+                                                    if (tempArr.length < weeks[newI].length) {
+                                                          var val = weeks[newI + 1][k];
+                                                          var isPush = isset(tempArr, val);
 
-                                                                  if (!isPush) {
-                                                                        tempArr.push(val);
-                                                                        // console.log("next col ["+ (newI + 1) +"]["+ k +"] => " + val);
-                                                                  }
-                                                            }
+                                                          if (!isPush) {
+                                                                tempArr.push(val);
+                                                                // console.log("next col ["+ (newI + 1) +"]["+ k +"] => " + val);
+                                                          }
+                                                    }
 
-                                                      }
-                                                }
-                                          }
-                                    }
-                              }
-                        }
+                                              }
+                                        }
+                                  }
+                            }
+                      }
+                    }
 
+                    console.log("tempArr", tempArr);
                   }
 
                   newArr.push(tempArr);
             }
 
+
             // check if last date is not found
             var found = false;
-            for (var i = 0; i < newArr.length; i++) {
+            for (var i = 1; i < newArr.length; i++) {
                   for (var j = 0; j < newArr[i].length; j++) {
                         if (newArr[i][j] == lastDate) {
                         

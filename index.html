@@ -9,21 +9,21 @@
 		<div id="dncalendar-container">
 		</div>
 		<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
-		<script type="text/javascript" src="js/dncalendar.min.js"></script>
+		<script type="text/javascript" src="js/dncalendar.js"></script>
 		<script type="text/javascript">
 		$(document).ready(function() {
 			var my_calendar = $("#dncalendar-container").dnCalendar({
-				minDate: "2016-01-15",
-				maxDate: "2016-12-02",
-				defaultDate: "2016-05-10",
+				minDate: "2017-01-01",
+				maxDate: "2017-12-02",
+				defaultDate: "2017-04-01",
 				monthNames: [ "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember" ], 
 				monthNamesShort: [ 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des' ],
 				dayNames: [ 'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
                 dayNamesShort: [ 'Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab' ],
                 dataTitles: { defaultDate: 'default', today : 'hari ini' },
                 notes: [
-                		{ "date": "2016-05-25", "note": ["Natal"] },
-                		{ "date": "2016-05-12", "note": ["Tahun Baru"] }
+                		{ "date": "2017-01-01", "note": ["Natal"] },
+                		{ "date": "2017-05-12", "note": ["Tahun Baru"] }
                 		],
                 showNotes: true,
                 startWeek: 'monday',

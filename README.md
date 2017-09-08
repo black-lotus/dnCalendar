@@ -1,9 +1,9 @@
 # dnCalendar
 simple and light calendar built with jquery
 
-<img src="https://dl.dropboxusercontent.com/u/195810077/dnCalendar-1.png"/>
+<img src="https://github.com/black-lotus/dnCalendar/blob/master/sample_1.png"/>
 
-<img src="https://dl.dropboxusercontent.com/u/195810077/dnCalendar-2.png"/>
+<img src="https://github.com/black-lotus/dnCalendar/blob/master/sample_2.png"/>
 
 
 # Requirements

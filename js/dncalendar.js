@@ -740,7 +740,7 @@
 
 		var triggerAction = function() {
 
-		    $('body').on('click', '#calendarClick', function(){
+		    $('body').on('click', '#' + self.attr('id') + ' #calendarClick', function(){
 				var selectedDate = $(this).data('date');
 				var selectedMonth = $(this).data('month');
 				var selectedYear = $(this).data('year');
